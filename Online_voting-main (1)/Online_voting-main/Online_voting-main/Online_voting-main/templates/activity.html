@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Activity Log — Admin{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <a href="/admin/results" class="btn btn-outline">Results</a>
+    <a href="/admin/logout" class="btn btn-ghost">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrapper" style="padding:2rem;max-width:1100px;margin:0 auto;">
+  <h1 style="font-size:2rem;font-weight:800;margin-bottom:2rem;">
+    📋 Activity Log
+  </h1>
+
+  <div class="card" style="overflow:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">#</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">TIME</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">ROLL NUMBER</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">ACTION</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">DETAILS</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">IP ADDRESS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{log.id}}</td>
+          <td style="padding:1rem;font-size:0.85rem;">{{log.timestamp}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--accent);">{{log.roll_number}}</td>
+          <td style="padding:1rem;">
+            {% if log.action == 'VOTE' %}
+              <span class="badge badge-green">{{log.action}}</span>
+            {% elif log.action == 'LOGIN' %}
+              <span class="badge badge-blue">{{log.action}}</span>
+            {% elif log.action == 'REGISTER' %}
+              <span class="badge badge-gold">{{log.action}}</span>
+            {% elif log.action == 'LOGIN_FAILED' %}
+              <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">{{log.action}}</span>
+            {% else %}
+              <span class="badge">{{log.action}}</span>
+            {% endif %}
+          </td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{log.details}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{log.ip_address}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

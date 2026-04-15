@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Voting Closed — VoteHub{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <a href="/logout" class="btn btn-ghost">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrapper" style="display:flex;align-items:center;
+     justify-content:center;min-height:100vh;">
+  <div style="text-align:center;max-width:500px;padding:2rem;
+       animation:slideUp 0.6s ease;">
+
+    <!-- Icon -->
+    <div style="width:120px;height:120px;background:linear-gradient(135deg,
+         rgba(239,68,68,0.2),rgba(239,68,68,0.05));border:2px solid
+         rgba(239,68,68,0.3);border-radius:50%;display:grid;
+         place-items:center;margin:0 auto 2rem;font-size:3.5rem;">
+      🔒
+    </div>
+
+    <div class="badge" style="background:rgba(239,68,68,0.15);
+         color:#ef4444;border:1px solid rgba(239,68,68,0.3);
+         margin-bottom:1.5rem;">
+      Voting Closed
+    </div>
+
+    <h1 style="font-size:2.5rem;font-weight:800;margin-bottom:1rem;">
+      Voting is Currently<br>
+      <span style="color:#ef4444;">Closed!</span>
+    </h1>
+
+    <p style="color:var(--muted);font-size:1rem;line-height:1.7;
+       margin-bottom:2.5rem;">
+      Hello <strong style="color:var(--accent);">{{ student_name }}</strong>,
+      voting has been closed by the admin.
+      Please wait for the admin to open voting.
+    </p>
+
+    <!-- Info card -->
+    <div class="card" style="padding:1.5rem;margin-bottom:2rem;
+         border-color:rgba(239,68,68,0.2);">
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <span style="font-size:1.2rem;">⏳</span>
+          <span style="font-size:0.9rem;color:var(--muted);">
+            Voting will open when admin activates it
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <span style="font-size:1.2rem;">📢</span>
+          <span style="font-size:0.9rem;color:var(--muted);">
+            Contact your admin for more information
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <span style="font-size:1.2rem;">🔄</span>
+          <span style="font-size:0.9rem;color:var(--muted);">
+            Refresh this page to check if voting has opened
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;justify-content:center;">
+      <a href="/vote" class="btn btn-outline btn-lg">
+        🔄 Refresh
+      </a>
+      <a href="/logout" class="btn btn-ghost btn-lg">
+        Logout
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

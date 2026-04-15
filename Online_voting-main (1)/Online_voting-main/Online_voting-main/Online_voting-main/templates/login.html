@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Student Login — VoteHub{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+ 
+</nav>
+
+<div class="page-wrapper auth-container">
+  <div class="auth-box">
+    <div class="auth-header">
+      <div class="auth-icon">🔐</div>
+      <h1 class="auth-title">Student Login</h1>
+      <p class="auth-subtitle">Sign in with your roll number to cast your vote</p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Roll Number</label>
+        <input type="text" id="roll" class="form-input" placeholder="e.g. CS21001" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="password" class="form-input" placeholder="Enter your password" />
+      </div>
+      <button class="btn btn-primary w-full btn-lg mt-2" id="loginBtn" onclick="handleLogin()">
+        Login & Vote →
+      </button>
+    </div>
+
+    <div class="auth-divider">or</div>
+    <div style="text-align:center;">
+      <span style="color:var(--muted);font-size:0.9rem;">Don't have an account? </span>
+      
+    </div>
+
+    <div style="margin-top:1.5rem;text-align:center;">
+      <a href="/admin/login" style="color:var(--muted);font-size:0.8rem;text-decoration:none;">Are you an admin? Admin Login →</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleLogin() {
+  const roll = document.getElementById('roll').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('loginBtn');
+
+  if (!roll || !password) {
+    showToast('Please fill in all fields', 'error');
+    return;
+  }
+
+  setLoading(btn, true);
+
+  const fd = new FormData();
+  fd.append('roll_number', roll);
+  fd.append('password', password);
+
+  try {
+    const data = await formPost('/login', fd);
+    if (data.success) {
+      showToast('Login successful! Redirecting...', 'success');
+      setTimeout(() => {
+        window.location.href = data.has_voted ? '/thank_you' : '/vote';
+      }, 1000);
+    } else {
+      showToast(data.message, 'error');
+      setLoading(btn, false);
+    }
+  } catch {
+    showToast('Something went wrong. Try again.', 'error');
+    setLoading(btn, false);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleLogin();
+});
+</script>
+{% endblock %}

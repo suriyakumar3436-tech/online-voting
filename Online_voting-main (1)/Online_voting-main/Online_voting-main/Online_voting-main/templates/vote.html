@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block title %}Cast Your Vote — VoteHub{% endblock %}
+
+{% block head %}
+<style>
+.vote-page { padding: 2rem 1rem 4rem; max-width: 900px; margin: 0 auto; }
+
+.vote-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: slideUp 0.5s ease;
+}
+
+.position-section { margin-bottom: 3rem; animation: slideUp 0.6s ease; }
+
+.position-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.position-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.position-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.candidates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.candidate-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.candidate-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245,166,35,0.04), transparent);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.candidate-card:hover {
+  border-color: rgba(245,166,35,0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.candidate-card:hover::before { opacity: 1; }
+
+.candidate-card.selected {
+  border-color: var(--accent);
+  background: rgba(245,166,35,0.06);
+  box-shadow: 0 0 0 1px var(--accent), 0 12px 40px rgba(245,166,35,0.15);
+}
+
+.candidate-card.selected::before { opacity: 1; }
+
+.candidate-symbol {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.candidate-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.candidate-dept {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.candidate-manifesto {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.check-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  color: #000;
+  font-weight: 700;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.candidate-card.selected .check-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Submit bar */
+.submit-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(10,14,26,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.submit-bar.visible { transform: translateY(0); }
+
+.vote-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <span class="badge badge-gold">👤 {{ student_name }}</span>
+    <a href="/logout" class="btn btn-ghost" style="font-size:0.82rem;">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="vote-page">
+    <!-- Header -->
+    <div class="vote-header">
+      <div class="badge badge-gold" style="margin-bottom:1rem;">🗳️ {{ election_name }}</div>
+      <h1 style="font-size:2.5rem;font-weight:800;margin-bottom:0.5rem;">Cast Your Vote</h1>
+      <p style="color:var(--muted);font-size:0.95rem;">Select one candidate per position. You cannot change your vote after submission.</p>
+    </div>
+
+    <!-- Positions -->
+    {% for position, candidates in positions.items() %}
+    <div class="position-section">
+      <div class="position-label">
+        <span class="position-title">{{ position }}</span>
+        <div class="position-line"></div>
+        <span style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">Choose 1</span>
+      </div>
+      <div class="candidates-grid">
+        {% for c in candidates %}
+        <div class="candidate-card" 
+             id="card-{{ c.id }}"
+             data-id="{{ c.id }}"
+             data-position="{{ position }}"
+             onclick="selectCandidate('{{ position }}', {{ c.id }})">
+          <div class="check-badge">✓</div>
+          {% if c.image %}
+<img src="{{ url_for('static', filename='images/' ~ c.image) }}"
+     style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border);margin-bottom:0.75rem;display:block;" />
+{% else %}
+<span class="candidate-symbol">{{ c.symbol }}</span>
+{% endif %}
+          <div class="candidate-name">{{ c.name }}</div>
+          <div class="candidate-dept">{{ c.department }}</div>
+          <div class="candidate-manifesto">{{ c.manifesto }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Submit Bar -->
+<div class="submit-bar" id="submitBar">
+  <div class="vote-progress">
+    <span style="font-size:0.85rem;color:var(--muted);white-space:nowrap;">
+      Selected: <span id="selectedCount" style="color:var(--accent);font-weight:700;">0</span> / {{ positions|length }}
+    </span>
+    <div class="progress-track" style="flex:1;max-width:200px;">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitVotes()">
+    Submit My Votes →
+  </button>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div class="card" style="max-width:480px;width:90%;padding:2.5rem;animation:slideUp 0.3s ease;">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div style="font-size:3rem;margin-bottom:0.75rem;">⚠️</div>
+      <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;">Confirm Your Votes</h2>
+      <p style="color:var(--muted);font-size:0.9rem;">This action cannot be undone. Please review your choices:</p>
+    </div>
+    <div id="votesSummary" style="margin-bottom:2rem;"></div>
+    <div style="display:flex;gap:1rem;">
+      <button class="btn btn-ghost w-full" onclick="closeModal()">← Go Back</button>
+      <button class="btn btn-primary w-full" id="confirmBtn" onclick="confirmVotes()">Confirm & Submit</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const totalPositions = {{ positions|length }};
+const selectedVotes = {}; // {position: candidate_id}
+const candidateNames = {};
+
+// Build name map
+{% for position, candidates in positions.items() %}
+  {% for c in candidates %}
+    candidateNames[{{ c.id }}] = '{{ c.name }}';
+  {% endfor %}
+{% endfor %}
+
+function selectCandidate(position, candidateId) {
+  // Deselect previous in same position
+  const prev = selectedVotes[position];
+  if (prev) {
+    document.getElementById(`card-${prev}`)?.classList.remove('selected');
+  }
+
+  // Select new
+  selectedVotes[position] = candidateId;
+  document.getElementById(`card-${candidateId}`)?.classList.add('selected');
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const count = Object.keys(selectedVotes).length;
+  document.getElementById('selectedCount').textContent = count;
+  const pct = (count / totalPositions) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const bar = document.getElementById('submitBar');
+  if (count > 0) bar.classList.add('visible');
+  
+  const btn = document.getElementById('submitBtn');
+  if (count === totalPositions) {
+    btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+    btn.textContent = '✓ Submit All Votes';
+  } else {
+    btn.style.background = '';
+    btn.textContent = `Submit My Votes → (${count}/${totalPositions})`;
+  }
+}
+
+function submitVotes() {
+  const count = Object.keys(selectedVotes).length;
+  if (count === 0) {
+    showToast('Please select at least one candidate', 'error');
+    return;
+  }
+  if (count < totalPositions) {
+    if (!confirm(`You've only selected ${count} of ${totalPositions} positions. Continue anyway?`)) return;
+  }
+
+  // Show summary modal
+  let html = '';
+  for (const [pos, cid] of Object.entries(selectedVotes)) {
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:0.5rem;">
+      <span style="color:var(--muted);font-size:0.85rem;">${pos}</span>
+      <span style="font-weight:600;color:var(--accent);">${candidateNames[cid]}</span>
+    </div>`;
+  }
+  document.getElementById('votesSummary').innerHTML = html;
+  const modal = document.getElementById('confirmModal');
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+async function confirmVotes() {
+  const btn = document.getElementById('confirmBtn');
+  setLoading(btn, true);
+
+  try {
+    const data = await apiPost('/submit_vote', { votes: selectedVotes });
+    if (data.success) {
+      showToast('Vote submitted successfully!', 'success');
+      setTimeout(() => window.location.href = '/thank_you', 1200);
+    } else {
+      showToast(data.message, 'error');
+      setLoading(btn, false);
+    }
+  } catch {
+    showToast('Submission failed. Try again.', 'error');
+    setLoading(btn, false);
+  }
+}
+
+// Close modal on backdrop click
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

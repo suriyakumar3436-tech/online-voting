@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}All Students — Admin{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <a href="/admin/results" class="btn btn-outline">Results</a>
+    <a href="/admin/activity" class="btn btn-outline">Activity</a>
+    <a href="/admin/logout" class="btn btn-ghost">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrapper" style="padding:2rem;max-width:1100px;margin:0 auto;">
+
+  <!-- Students Table -->
+  <h1 style="font-size:2rem;font-weight:800;margin-bottom:1rem;">👥 All Students</h1>
+  <div class="card" style="overflow:auto;margin-bottom:3rem;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">#</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">ROLL NO</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">NAME</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">DEPARTMENT</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">EMAIL</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">VOTED</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">VOTED AT</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">REGISTERED AT</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{s.id}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--accent);font-weight:600;">{{s.roll_number}}</td>
+          <td style="padding:1rem;font-size:0.85rem;">{{s.name}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{s.department}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{s.email}}</td>
+          <td style="padding:1rem;">
+            {% if s.has_voted %}
+              <span class="badge badge-green">✅ Voted</span>
+            {% else %}
+              <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">❌ Not Voted</span>
+            {% endif %}
+          </td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{s.voted_at or '—'}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{s.created_at}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Activity Table -->
+  <h1 style="font-size:2rem;font-weight:800;margin-bottom:1rem;">📋 All Activities</h1>
+  <div class="card" style="overflow:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">#</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">TIME</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">ROLL NO</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">NAME</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">DEPARTMENT</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">ACTION</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">PAGE</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">DETAILS</th>
+          <th style="padding:1rem;text-align:left;color:var(--muted);font-size:0.8rem;">IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in activities %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.id}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.timestamp}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--accent);font-weight:600;">{{a.roll_number}}</td>
+          <td style="padding:1rem;font-size:0.85rem;">{{a.student_name}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.department}}</td>
+          <td style="padding:1rem;">
+            {% if a.action == 'VOTED' %}
+              <span class="badge badge-green">{{a.action}}</span>
+            {% elif a.action == 'LOGGED_IN' %}
+              <span class="badge badge-blue">{{a.action}}</span>
+            {% elif a.action == 'REGISTERED' %}
+              <span class="badge badge-gold">{{a.action}}</span>
+            {% else %}
+              <span class="badge badge-ghost">{{a.action}}</span>
+            {% endif %}
+          </td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.page}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.details}}</td>
+          <td style="padding:1rem;font-size:0.85rem;color:var(--muted);">{{a.ip_address}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

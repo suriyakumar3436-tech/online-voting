@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Add Student — Admin{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <a href="/admin/students" class="btn btn-outline">👥 Students</a>
+    <a href="/admin/results" class="btn btn-outline">📊 Results</a>
+    <a href="/admin/logout" class="btn btn-ghost">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrapper auth-container" style="padding:2rem 1rem;">
+  <div class="auth-box" style="max-width:520px;">
+    <div class="auth-header">
+      <div class="auth-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));border-color:rgba(16,185,129,0.3);">➕</div>
+      <h1 class="auth-title">Add Student</h1>
+      <p class="auth-subtitle">Admin registers students — students only login & vote</p>
+    </div>
+
+    <!-- Info box -->
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1rem;background:rgba(16,185,129,0.08);border-radius:10px;border:1px solid rgba(16,185,129,0.2);margin-bottom:1.5rem;">
+      <span style="color:var(--green);">ℹ</span>
+      <span style="font-size:0.82rem;color:var(--muted);">Default password = Roll Number (student can use roll number to login)</span>
+    </div>
+
+    <div class="card">
+
+      <div class="form-group">
+        <label class="form-label">Roll Number</label>
+        <input type="text" id="roll" class="form-input" placeholder="23CSE44" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="name" class="form-input" placeholder="Student Name" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password <span style="color:var(--muted);font-size:0.75rem;">(leave blank = roll number as password)</span></label>
+        <input type="text" id="password" class="form-input" placeholder="Leave blank to use roll number" />
+      </div>
+
+      <button class="btn btn-green w-full btn-lg mt-2" id="addBtn" onclick="handleAddStudent()">
+        ➕ Add Student
+      </button>
+    </div>
+
+    <!-- Success message -->
+    <div id="successBox" style="display:none;margin-top:1.5rem;padding:1rem 1.5rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius);">
+      <div style="font-weight:700;color:var(--green);margin-bottom:0.5rem;">✅ Student Added!</div>
+      <div id="successMsg" style="font-size:0.85rem;color:var(--muted);"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:1.5rem;">
+      <a href="/admin/students" style="color:var(--accent);font-weight:600;text-decoration:none;">View All Students →</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleAddStudent() {
+  const roll = document.getElementById('roll').value.trim().toUpperCase();
+  const name = document.getElementById('name').value.trim();
+  const password = document.getElementById('password').value.trim() || roll;
+  const btn = document.getElementById('addBtn');
+
+  if (!roll || !name) {
+    showToast('Please fill Roll Number and Name!', 'error');
+    return;
+  }
+
+  setLoading(btn, true);
+  const fd = new FormData();
+  fd.append('roll_number', roll);
+  fd.append('name', name);
+  fd.append('password', password);
+  fd.append('department', 'General');
+  fd.append('email', roll + '@college.edu');
+
+  try {
+    const data = await formPost('/admin/add_student', fd);
+    if (data.success) {
+      document.getElementById('successMsg').textContent = data.message;
+      document.getElementById('successBox').style.display = 'block';
+      showToast('Student added!', 'success');
+      // Clear form
+      document.getElementById('roll').value = '';
+      document.getElementById('name').value = '';
+      document.getElementById('password').value = '';
+    } else {
+      showToast(data.message, 'error');
+    }
+  } catch {
+    showToast('Failed. Try again.', 'error');
+  }
+  setLoading(btn, false);
+}
+</script>
+{% endblock %}

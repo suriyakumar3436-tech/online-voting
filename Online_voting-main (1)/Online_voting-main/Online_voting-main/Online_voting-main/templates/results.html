@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Results Dashboard — VoteHub Admin{% endblock %}
+
+{% block head %}
+<style>
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.result-card.winner {
+  border-color: var(--accent);
+  background: rgba(245,166,35,0.04);
+  box-shadow: 0 0 30px rgba(245,166,35,0.1);
+  position: relative;
+}
+
+.winner-crown {
+  position: absolute;
+  top: -14px; right: 1rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.stat-icon {
+  width: 50px; height: 50px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+
+.position-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin: 2.5rem 0 1rem;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<!-- Admin Navbar -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <span class="badge badge-blue">🛡️ Admin</span>
+    <button class="btn" id="toggleBtn"
+onclick="toggleVoting()"
+style="font-size:0.82rem;background:var(--green);color:#fff;">
+  🟢 Voting ON
+</button>
+    <a href="/admin/logout" class="btn btn-outline" style="font-size:0.82rem;">Logout</a>
+    <a href="/admin/add_student" class="btn btn-green">➕ Add Student</a>
+  </div>
+</nav>
+
+<div class="page-wrapper" style="padding:2rem 1rem 4rem;max-width:1100px;margin:0 auto;">
+<a href="/admin/activity" class="btn btn-outline">📋 Activity Log</a>
+  <!-- Header -->
+  <div style="margin-bottom:2.5rem;animation:slideUp 0.5s ease;">
+    <div class="badge badge-blue" style="margin-bottom:1rem;">Admin Dashboard</div>
+    <h1 style="font-size:2.5rem;font-weight:800;margin-bottom:0.4rem;">Election Results</h1>
+    <p style="color:var(--muted);">{{ election_name }}</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:3rem;animation:slideUp 0.6s ease;">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,166,35,0.15);">🎓</div>
+      <div>
+        <div class="stat-value text-accent">{{ total_students }}</div>
+        <div class="stat-label">Registered Students</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,0.15);">✅</div>
+      <div>
+        <div class="stat-value text-green">{{ total_voted }}</div>
+        <div class="stat-label">Votes Cast</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(59,130,246,0.15);">📊</div>
+      <div>
+        <div class="stat-value" style="color:var(--blue);">{{ turnout }}%</div>
+        <div class="stat-label">Voter Turnout</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(139,92,246,0.15);">🏛️</div>
+      <div>
+        <div class="stat-value" style="color:#8b5cf6;">{{ positions|length }}</div>
+        <div class="stat-label">Positions Contested</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Turnout Bar -->
+  <div class="card" style="margin-bottom:3rem;padding:1.5rem 2rem;animation:slideUp 0.65s ease;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <span style="font-weight:600;font-size:0.9rem;">Overall Voter Turnout</span>
+      <span style="color:var(--accent);font-weight:700;">{{ turnout }}%</span>
+    </div>
+    <div class="progress-track" style="height:10px;">
+      <div class="progress-fill" style="width:{{ turnout }}%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.78rem;color:var(--muted);">
+      <span>0 votes</span>
+      <span>{{ total_voted }} of {{ total_students }} students voted</span>
+      <span>{{ total_students }} total</span>
+    </div>
+  </div>
+
+  <!-- Results by Position -->
+  {% for position, candidates in positions.items() %}
+  {% set total_pos_votes = candidates | sum(attribute='vote_count') %}
+  
+  <div class="position-header">
+    <span class="section-title">{{ position }}</span>
+    <div style="flex:1;height:1px;background:var(--border);"></div>
+    <span style="font-size:0.8rem;color:var(--muted);">{{ total_pos_votes }} votes</span>
+  </div>
+
+  <div class="results-grid" style="margin-bottom:1rem;">
+    {% for i, c in candidates | enumerate %}
+    {% set pct = ((c.vote_count / total_pos_votes * 100) | round(1)) if total_pos_votes > 0 else 0 %}
+    <div class="result-card {% if i == 0 and total_pos_votes > 0 %}winner{% endif %}">
+      {% if i == 0 and total_pos_votes > 0 %}
+        <div class="winner-crown">👑 LEADING</div>
+      {% endif %}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+        <div>
+          {% if c.image %}
+<img src="{{ url_for('static', filename='images/' ~ c.image) }}"
+     style="width:55px;height:55px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" />
+{% else %}
+<div style="font-size:1.8rem;">{{ c.symbol }}</div>
+{% endif %}
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-top:0.25rem;">{{ c.name }}</div>
+          <div style="font-size:0.78rem;color:var(--muted);">{{ c.department }}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:{% if i == 0 and total_pos_votes > 0 %}var(--accent){% else %}var(--text){% endif %};">{{ c.vote_count }}</div>
+          <div style="font-size:0.75rem;color:var(--muted);">votes</div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:{{ pct }}%;{% if i != 0 %}background:var(--muted);opacity:0.5;{% endif %}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:0.4rem;font-size:0.78rem;color:var(--muted);">
+        <span>{{ pct }}% of votes</span>
+        <span>Rank #{{ i + 1 }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <!-- No votes note -->
+  {% if total_voted == 0 %}
+  <div style="text-align:center;padding:3rem;color:var(--muted);">
+    <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+    <p>No votes have been cast yet. Results will appear here once voting begins.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function toggleVoting() {
+  const btn = document.getElementById('toggleBtn');
+  setLoading(btn, true);
+  try {
+    const data = await apiPost('/admin/toggle_voting', {});
+    if (data.success) {
+      if (data.voting_open) {
+        btn.style.background = 'var(--green)';
+        btn.innerHTML = '🟢 Voting ON';
+        showToast('Voting is now OPEN!', 'success');
+      } else {
+        btn.style.background = 'var(--red)';
+        btn.innerHTML = '🔴 Voting OFF';
+        showToast('Voting is now CLOSED!', 'error');
+      }
+    }
+  } catch {
+    showToast('Failed to toggle voting status', 'error');
+  }
+  setLoading(btn, false);
+
+}
+</script>
+{% endblock %}

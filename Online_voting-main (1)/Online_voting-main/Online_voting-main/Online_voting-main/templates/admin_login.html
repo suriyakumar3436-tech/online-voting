@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — VoteHub{% endblock %}
+
+{% block body %}
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">🗳️</div>
+    <div class="brand-name">Vote<span>Hub</span></div>
+  </a>
+  <div class="navbar-links">
+    <a href="/login" class="btn btn-outline">Student Login</a>
+  </div>
+</nav>
+
+<div class="page-wrapper auth-container">
+  <div class="auth-box">
+    <div class="auth-header">
+      <div class="auth-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(59,130,246,0.05));border-color:rgba(59,130,246,0.3);">🛡️</div>
+      <h1 class="auth-title">Admin Portal</h1>
+      <p class="auth-subtitle">Restricted access — Election administrators only</p>
+    </div>
+
+    <div class="card" style="border-color:rgba(59,130,246,0.2);">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" id="username" class="form-input" placeholder="admin" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="password" class="form-input" placeholder="••••••••" />
+      </div>
+      <button class="btn w-full btn-lg mt-2" id="adminBtn" onclick="handleAdminLogin()"
+        style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;box-shadow:0 4px 20px rgba(59,130,246,0.3);">
+        Access Admin Panel →
+      </button>
+    </div>
+
+    <div style="text-align:center;margin-top:1.5rem;">
+      <a href="/" style="color:var(--muted);font-size:0.82rem;text-decoration:none;">← Back to Home</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleAdminLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('adminBtn');
+
+  if (!username || !password) {
+    showToast('Please enter credentials', 'error');
+    return;
+  }
+
+  setLoading(btn, true);
+  const fd = new FormData();
+  fd.append('username', username);
+  fd.append('password', password);
+
+  try {
+    const data = await formPost('/admin/login', fd);
+    if (data.success) {
+      showToast('Access granted! Loading dashboard...', 'success');
+      setTimeout(() => window.location.href = '/admin/results', 1000);
+    } else {
+      showToast(data.message, 'error');
+      setLoading(btn, false);
+    }
+  } catch {
+    showToast('Login failed. Try again.', 'error');
+    setLoading(btn, false);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAdminLogin();
+});
+</script>
+{% endblock %}
